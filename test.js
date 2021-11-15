@@ -1,15 +1,28 @@
 const puppeteer = require('puppeteer-core');
 const http = require('http');
+const axios = require('axios');
 
+const mlaPort = 10000;
 
 async function startProfile() {
-    //Replace profileId value with existing browser profile ID.
-    let profileId = '6796662a-52ab-4edc-b6eb-3819e96bfad3';
-    let mlaPort = 10000;
+    const response = await axios.post("http://localhost.multiloginapp.com:10000/api/v2/profile", {
+        "name": "Temporary Profile (CL)",
+        "os": "win",
+        "browser": "mimic"
+    });
+
+    if (!('uuid' in response.data)) {
+        console.log('failed to create profile')
+        process.exit()
+    }
+
+    console.log('created profile', response.data.uuid)
+
+    const localUrl = `http://127.0.0.1:${mlaPort}/api/v1/profile/start?automation=true&puppeteer=true&profileId=${response.data.uuid}`;
 
     /*Send GET request to start the browser profile by profileId.
     Returns web socket as response which should be passed to puppeteer.connect*/
-    http.get(`http://127.0.0.1:${mlaPort}/api/v1/profile/start?automation=true&puppeteer=true&profileId=${profileId}`, (resp) => {
+    http.get(localUrl, (resp) => {
         let data = '';
         let ws = '';
 
