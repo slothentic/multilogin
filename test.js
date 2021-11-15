@@ -4,7 +4,7 @@ const http = require('http');
 
 async function startProfile() {
     //Replace profileId value with existing browser profile ID.
-    let profileId = 'ce50377f-2b06-4f28-90ba-19a2343c8b5f';
+    let profileId = '6796662a-52ab-4edc-b6eb-3819e96bfad3';
     let mlaPort = 10000;
 
     /*Send GET request to start the browser profile by profileId.
@@ -43,9 +43,26 @@ async function run(ws) {
         //Connecting Puppeteer with Mimic instance and performing simple automation.
         const browser = await puppeteer.connect({ browserWSEndpoint: ws, defaultViewport: null });
         const page = await browser.newPage();
-        await page.goto('https://sfbay.craigslist.org/pen/cto/d/san-carlos-2010-toyota-prius-for-sale/7407084120.html');
-        await page.screenshot({ path: `/Users/${process.env.USER}/Desktop/multiloginScreenshot.png` });
-        await browser.close();
+        await page.authenticate({ 'username': 'user-2cresidential-sessionduration-10', 'password': 'IocCQ1PF823sjcpMcGlJRq' });
+        await page.goto('https://sfbay.craigslist.org/pen/cto/d/millbrae-2005-honda-civic/7408094868.html');
+
+        console.log("clicking reply...")
+
+        await page.waitForSelector(".reply-button")
+        const reply = await page.$('.reply-button');
+        await reply.click()
+
+        await page.waitForSelector(".show-phone")
+        const phone = await page.$('.show-phone');
+        await phone.click()
+
+        console.log("clicked")
+
+        await page.waitForTimeout(3000)
+
+        // await page.screenshot({ path: `/Users/dfratus/Desktop/test.png` });
+
+        // await browser.close();
     } catch (err) {
         console.log(err.message);
     }
