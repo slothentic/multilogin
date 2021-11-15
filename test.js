@@ -13,8 +13,8 @@ async function startProfile() {
             "proxy": {
                 "type": "HTTP",
                 "host": "us.smartproxy.com",
-                "port": "10004",
-                "username": "user-2cresidential-sessionduration-10",
+                "port": "10005",
+                "username": "user-2cresidential-sessionduration-1",
                 "password": "IocCQ1PF823sjcpMcGlJRq"
             }
         }
@@ -78,13 +78,14 @@ async function run(ws) {
         const phone = await page.$('.show-phone');
         await phone.click()
 
-        console.log("clicked")
+        await page.waitForSelector("#reply-tel-number")
+        await page.waitForFunction('document.querySelector("#reply-tel-number").innerText.length > 0');
+        const phoneNumberContainer = await page.$('#reply-tel-number')
+        const phoneNumber = await page.evaluate(el => el.textContent, phoneNumberContainer)
 
-        await page.waitForTimeout(3000)
-
-        // await page.screenshot({ path: `/Users/dfratus/Desktop/test.png` });
-
-        // await browser.close();
+        console.log("phoneNumber", phoneNumber)
+        
+        await browser.close();
     } catch (err) {
         console.log(err.message);
     }
