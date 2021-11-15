@@ -8,7 +8,16 @@ async function startProfile() {
     const response = await axios.post("http://localhost.multiloginapp.com:10000/api/v2/profile", {
         "name": "Temporary Profile (CL)",
         "os": "win",
-        "browser": "mimic"
+        "browser": "mimic",
+        "network": {
+            "proxy": {
+                "type": "HTTP",
+                "host": "us.smartproxy.com",
+                "port": "10004",
+                "username": "user-2cresidential-sessionduration-10",
+                "password": "IocCQ1PF823sjcpMcGlJRq"
+            }
+        }
     });
 
     if (!('uuid' in response.data)) {
