@@ -4,6 +4,10 @@ const axios = require('axios');
 
 const mlaPort = 10000;
 
+const endpointNext = "https://df.scrapcars.dev/webhook/listing/next"
+const endpointPhone = "https://df.scrapcars.dev/webhook/listing/phone"
+const endpointInvalid = "https://df.scrapcars.dev/webhook/listing/invalid"
+
 async function startProfile() {
     const response = await axios.post("http://localhost.multiloginapp.com:10000/api/v2/profile", {
         "name": "Temporary Profile (CL)",
@@ -62,11 +66,20 @@ async function startProfile() {
 
 async function run(ws) {
     try {
+        const { data } = await axios.get(endpointNext);
+
+        if (!data.listing.url) {
+            console.log("Listing API did not provide URL")
+            return;
+        }
+
+        console.log("scraping url", data.listing.url)
+
         //Connecting Puppeteer with Mimic instance and performing simple automation.
         const browser = await puppeteer.connect({ browserWSEndpoint: ws, defaultViewport: null });
         const page = await browser.newPage();
         await page.authenticate({ 'username': 'user-2cresidential-sessionduration-10', 'password': 'IocCQ1PF823sjcpMcGlJRq' });
-        await page.goto('https://sfbay.craigslist.org/pen/cto/d/millbrae-2005-honda-civic/7408094868.html');
+        await page.goto(data.listing.url);
 
         console.log("clicking reply...")
 
@@ -83,8 +96,19 @@ async function run(ws) {
         const phoneNumberContainer = await page.$('#reply-tel-number')
         const phoneNumber = await page.evaluate(el => el.textContent, phoneNumberContainer)
 
-        console.log("phoneNumber", phoneNumber)
-        
+        if (phoneNumber) {
+            console.log('posting phone', phoneNumber);
+        }
+
+        await axios.post(endpointPhone, {
+            listing: data.listing.id,
+            phone: phoneNumber,
+        });
+
+        // if it doesn't have a phone
+        // call this to skip it immediately...
+        // await axios.post(endpointInvalid, { listing: data.listing.id });
+
         await browser.close();
     } catch (err) {
         console.log(err.message);
