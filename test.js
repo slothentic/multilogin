@@ -4,9 +4,9 @@ const axios = require('axios');
 
 const mlaPort = 10000;
 
-const endpointNext = "https://df.scrapcars.dev/webhook/listing/next"
-const endpointPhone = "https://df.scrapcars.dev/webhook/listing/phone"
-const endpointInvalid = "https://df.scrapcars.dev/webhook/listing/invalid"
+const endpointNext = "https://api.scrapcars.io/webhook/listing/next"
+const endpointPhone = "https://api.scrapcars.io/webhook/listing/phone"
+const endpointInvalid = "https://api.scrapcars.io/webhook/listing/invalid"
 
 async function startProfile() {
     const response = await axios.post(`http://localhost.multiloginapp.com:${mlaPort}/api/v2/profile`, {
@@ -85,15 +85,15 @@ async function run(ws) {
 
         //Connecting Puppeteer with Mimic instance and performing simple automation.        
         const page = await browser.newPage();
-        await page.authenticate({ 'username': 'user-2cresidential-sessionduration-10', 'password': 'IocCQ1PF823sjcpMcGlJRq' });
+        await page.authenticate({ 'username': 'user-2cresidential-sessionduration-1', 'password': 'IocCQ1PF823sjcpMcGlJRq' });
         await page.goto(data.listing.url);
 
         console.log("clicking reply...")
+
         let replyNotFound;
 
         await page.waitForSelector(".reply-button", { timeout: 2000 }).catch(async () => {
-            console.log("no phone reply option, making invalid")
-            await axios.post(endpointInvalid, { listing: data.listing.id });
+            console.log("no phone reply option, may have hit captcha so trying again...")
             replyNotFound = true
         });
 
