@@ -1,1 +1,1 @@
-while true; do node test.js; done
+while true; do node scrape.js; done
