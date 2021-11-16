@@ -85,8 +85,18 @@ async function run(ws) {
         await page.goto(data.listing.url);
 
         console.log("clicking reply...")
+        let replyNotFound;
 
-        await page.waitForSelector(".reply-button")
+        await page.waitForSelector(".reply-button", { timeout: 2000 }).catch(async () => {
+            console.log("no phone reply option, making invalid")
+            await axios.post(endpointInvalid, { listing: data.listing.id });
+            replyNotFound = true
+        });
+
+        if (replyNotFound) {
+            return;
+        }
+
         const reply = await page.$('.reply-button');
         await reply.click()
 
