@@ -9,7 +9,7 @@ const endpointPhone = "https://df.scrapcars.dev/webhook/listing/phone"
 const endpointInvalid = "https://df.scrapcars.dev/webhook/listing/invalid"
 
 async function startProfile() {
-    const response = await axios.post("http://localhost.multiloginapp.com:10000/api/v2/profile", {
+    const response = await axios.post(`http://localhost.multiloginapp.com:${mlaPort}/api/v2/profile`, {
         "name": "Temporary Profile (CL)",
         "os": "win",
         "browser": "mimic",
@@ -46,7 +46,7 @@ async function startProfile() {
 
         /*The whole response data has been received. Handling JSON Parse errors,
         verifying if ws is an object and contains the 'value' parameter.*/
-        resp.on('end', () => {
+        resp.on('end', async () => {
             let ws;
             try {
                 ws = JSON.parse(data);
@@ -56,6 +56,8 @@ async function startProfile() {
             if (typeof ws === 'object' && ws.hasOwnProperty('value')) {
                 console.log(`Browser websocket endpoint: ${ws.value}`);
                 run(ws.value);
+
+                await axios.delete(`http://localhost.multiloginapp.com:${mlaPort}/api/v2/profile/${response.data.uuid}`);
             }
         });
 
@@ -65,6 +67,8 @@ async function startProfile() {
 }
 
 async function run(ws) {
+    const browser = await puppeteer.connect({ browserWSEndpoint: ws, defaultViewport: null });
+
     try {
         const { data } = await axios.get(endpointNext);
 
@@ -75,8 +79,7 @@ async function run(ws) {
 
         console.log("scraping url", data.listing.url)
 
-        //Connecting Puppeteer with Mimic instance and performing simple automation.
-        const browser = await puppeteer.connect({ browserWSEndpoint: ws, defaultViewport: null });
+        //Connecting Puppeteer with Mimic instance and performing simple automation.        
         const page = await browser.newPage();
         await page.authenticate({ 'username': 'user-2cresidential-sessionduration-10', 'password': 'IocCQ1PF823sjcpMcGlJRq' });
         await page.goto(data.listing.url);
@@ -87,12 +90,24 @@ async function run(ws) {
         const reply = await page.$('.reply-button');
         await reply.click()
 
-        await page.waitForSelector(".show-phone")
+        let phoneReplyNotFound;
+
+        await page.waitForSelector(".show-phone", { timeout: 5000 }).catch(async () => {
+            console.log("no phone reply option, making invalid")
+            await axios.post(endpointInvalid, { listing: data.listing.id });
+            phoneReplyNotFound = true
+        });
+
+        if (phoneReplyNotFound) {
+            return;
+        }
+
         const phone = await page.$('.show-phone');
         await phone.click()
 
-        await page.waitForSelector("#reply-tel-number")
+        await page.waitForSelector("#reply-tel-number");
         await page.waitForFunction('document.querySelector("#reply-tel-number").innerText.length > 0');
+
         const phoneNumberContainer = await page.$('#reply-tel-number')
         const phoneNumber = await page.evaluate(el => el.textContent, phoneNumberContainer)
 
@@ -104,14 +119,10 @@ async function run(ws) {
             listing: data.listing.id,
             phone: phoneNumber,
         });
-
-        // if it doesn't have a phone
-        // call this to skip it immediately...
-        // await axios.post(endpointInvalid, { listing: data.listing.id });
-
-        await browser.close();
     } catch (err) {
         console.log(err.message);
+    } finally {
+        await browser.close();
     }
 }
 
