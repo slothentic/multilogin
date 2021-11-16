@@ -1,0 +1,1 @@
+while true; do node test.js; done
