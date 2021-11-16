@@ -17,7 +17,7 @@ async function startProfile() {
             "proxy": {
                 "type": "HTTP",
                 "host": "us.smartproxy.com",
-                "port": "10005",
+                "port": "10004",
                 "username": "user-2cresidential-sessionduration-1",
                 "password": "IocCQ1PF823sjcpMcGlJRq"
             }
@@ -67,7 +67,7 @@ async function startProfile() {
     });
 
     await new Promise(r => setTimeout(r, 30000));
-    console.log('30 second cooldown...')
+    console.log('finished 30 second cooldown...')
 }
 
 async function run(ws) {
