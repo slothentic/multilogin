@@ -26,6 +26,7 @@ async function startProfile() {
 
     if (!('uuid' in response.data)) {
         console.log('failed to create profile')
+        await new Promise(r => setTimeout(r, 30000));
         process.exit()
     }
 
@@ -64,6 +65,9 @@ async function startProfile() {
     }).on("error", (err) => {
         console.log(err.message);
     });
+
+    await new Promise(r => setTimeout(r, 30000));
+    console.log('30 second cooldown...')
 }
 
 async function run(ws) {
